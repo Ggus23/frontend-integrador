@@ -1,41 +1,51 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useSession } from "next-auth/react";
 
 export function UserProfile() {
+  const { data: session } = useSession();
   const [profile, setProfile] = useState({
-    name: "Juan Pérez",
-    email: "juan.perez@example.com",
-    role: "Profesor",
-    specialty: "Matemáticas",
-    bio: "Profesor de matemáticas con 10 años de experiencia en educación secundaria. Apasionado por la innovación educativa y el uso de tecnología en el aula.",
-    interests: ["Educación STEM", "Aprendizaje basado en proyectos", "Tecnología educativa"],
-  })
+    name: "",
+    email: "",
+    rol: "",
+    recursos: "",
+    participaciones: "",
+    mensajes: "",
+  });
+
+  useEffect(() => {
+    if (session?.user) {
+      setProfile({
+        name: session.user.nombre || "", // Verifica si existe
+        email: session.user.email || "", // Verifica si existe
+        rol: session.user.rol || "", // Verifica si existe
+        recursos: session.user.recursos || "", // Verifica si existe
+        participaciones: session.user.participaciones || "", // Verifica si existe
+        mensajes: session.user.mensajes || "", // Verifica si existe
+      });
+    }
+  }, [session]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value })
-  }
-
-  const handleInterestChange = (value: string) => {
-    setProfile((prev) => ({
-      ...prev,
-      interests: [...prev.interests, value],
-    }))
-  }
+    setProfile({ ...profile, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Aquí iría la lógica para actualizar el perfil
-    console.log("Perfil actualizado:", profile)
+    e.preventDefault();
+    // Aquí iría la lógica para actualizar el perfil en el backend
+    console.log("Perfil actualizado:", profile);
+  };
+
+  if (!session) {
+    return <div>Cargando...</div>;
   }
 
   return (
@@ -62,44 +72,25 @@ export function UserProfile() {
               <Input id="email" name="email" type="email" value={profile.email} onChange={handleChange} />
             </div>
             <div>
-              <Label htmlFor="role">Rol</Label>
-              <Input id="role" name="role" value={profile.role} onChange={handleChange} />
+              <Label htmlFor="rol">Rol</Label>
+              <Input id="rol" name="rol" value={profile.rol} onChange={handleChange} />
             </div>
             <div>
-              <Label htmlFor="specialty">Especialidad</Label>
-              <Input id="specialty" name="specialty" value={profile.specialty} onChange={handleChange} />
+              <Label htmlFor="recursos">Recursos</Label>
+              <Input id="recursos" name="recursos" value={profile.recursos} onChange={handleChange} />
             </div>
-          </div>
-          <div>
-            <Label htmlFor="bio">Biografía</Label>
-            <Textarea id="bio" name="bio" value={profile.bio} onChange={handleChange} rows={4} />
-          </div>
-          <div>
-            <Label htmlFor="interests">Intereses</Label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {profile.interests.map((interest, index) => (
-                <span key={index} className="bg-orange-400 text-blue-100 text-xs font-medium px-2.5 py-0.5 rounded">
-                  {interest}
-                </span>
-              ))}
+            <div>
+              <Label htmlFor="participaciones">Participaciones</Label>
+              <Input id="participaciones" name="participaciones" value={profile.participaciones} onChange={handleChange} />
             </div>
-            <Select onValueChange={handleInterestChange}>
-              <SelectTrigger className="w-full mt-2">
-                <SelectValue placeholder="Agregar interés" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Educación inclusiva">Educación inclusiva</SelectItem>
-                <SelectItem value="Gamificación">Gamificación</SelectItem>
-                <SelectItem value="Inteligencia artificial en educación">
-                  Inteligencia artificial en educación
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <div>
+              <Label htmlFor="mensajes">Mensajes</Label>
+              <Input id="mensajes" name="mensajes" value={profile.mensajes} onChange={handleChange} />
+            </div>
           </div>
           <Button type="submit">Guardar cambios</Button>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
-

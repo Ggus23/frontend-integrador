@@ -1,7 +1,11 @@
+"use client"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { useSession, signOut } from "next-auth/react"
 
 export function Header() {
+  const { data: session } = useSession()
+
   return (
     <header className="bg-orange-950 text-white py-4">
       <div className="container mx-auto flex justify-between items-center">
@@ -26,17 +30,24 @@ export function Header() {
           </Link>
         </nav>
         <div className="space-x-2">
-          <Button asChild variant="outline" className="bg-orange-900 text-white hover:bg-orange-800">
-            <Link href="/login">Iniciar Sesión</Link>
-          </Button>
-          <Button asChild className="bg-orange-500 text-white hover:bg-orange-400">
-            <Link href="/register">Registrarse</Link>
-          </Button>
+          {session ? (
+            <Button onClick={() => signOut()} className="bg-orange-500 text-white hover:bg-orange-400">
+              Cerrar Sesión
+            </Button>
+          ) : (
+            <>
+              <Button asChild variant="outline" className="bg-orange-900 text-white hover:bg-orange-800">
+                <Link href="/login">Iniciar Sesión</Link>
+              </Button>
+              <Button asChild className="bg-orange-500 text-white hover:bg-orange-400">
+                <Link href="/register">Registrarse</Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>
   )
 }
-
 
 

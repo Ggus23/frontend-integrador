@@ -2,8 +2,7 @@
 
 import type React from "react"
 import { useRouter } from "next/navigation";
-import axios from "axios";
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,49 +11,105 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { UserPlus, User, Mail, Lock, School, Loader2 } from "lucide-react"
+import { signIn } from "next-auth/react";
+
+interface Colegio {
+  id: number;
+  nombre: string;
+}
 
 export default function Register() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    colegio: "",
-  });
-  const [isLoading, setIsLoading] = useState(false); // Separado correctamente
-  const [error, setError] = useState("");
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [colegio, setColegio] = useState<string>("");
+  const [contrasena_hasheada, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [rol, setRol] = useState<string>("");
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string[]>([]);
+  const [colegios, setColegios] = useState<Colegio[]>([]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    const fetchColegios = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/schools`);
+        if (!res.ok) {
+          throw new Error("Failed to fetch colegios");
+        }
+        const data: Colegio[] = await res.json();
+        setColegios(data);
+      } catch (err) {
+        console.error("Error fetching colegios:", err);
+        setError(["Error al cargar los colegios."]);
+      }
+    };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-  
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden");
+    fetchColegios();
+  }, []);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError([]);
+
+    if (contrasena_hasheada !== confirmPassword) {
+      setError(["Las contraseñas no coinciden."]);
       setIsLoading(false);
       return;
     }
-  
-    try {
-      await axios.post("http://localhost:3001/auth/register", formData);
-      router.push("/login");
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Error al registrarse");
-    } finally {
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre: name,
+          email: email,
+          colegio: colegio,
+          contrasena_hasheada: contrasena_hasheada,
+          rol: rol,
+        }),
+      }
+    );
+
+    const responseAPI = await res.json();
+
+    if (!res.ok) {
+      if (typeof responseAPI.message === 'string') {
+        setError([responseAPI.message]);
+      } else if (Array.isArray(responseAPI.message)) {
+        setError(responseAPI.message);
+      } else {
+        setError(["an unknown error occurred"]);
+      }
       setIsLoading(false);
+      return;
     }
-    
+
+    const responseNextAuth = await signIn("credentials", {
+      email,
+      contrasena_hasheada,
+      redirect: false,
+    });
+
+    if (responseNextAuth?.error) {
+      if (typeof responseNextAuth?.error === 'string') {
+        setError(responseNextAuth.error.split(","));
+      } else {
+        setError(["an error occurred during sign in"]);
+      }
+      setIsLoading(false);
+      return;
+    }
+
+    router.push("/login");
+    setIsLoading(false);
   };
 
-  const handleSelectChange = (value: string) => {
-    setFormData({ ...formData, colegio: value });
-  };
-
-  
   return (
     <Card className="w-full max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
       <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-400 text-white p-6">
@@ -72,8 +127,8 @@ export default function Register() {
               <Input
                 id="name"
                 name="name"
-                value={formData.name}
-                onChange={handleChange}
+                value={name}
+                onChange={(event) => setName(event.target.value)}
                 required
                 className="pl-10 w-full"
                 placeholder="Nombre completo"
@@ -90,8 +145,8 @@ export default function Register() {
                 id="email"
                 name="email"
                 type="email"
-                value={formData.email}
-                onChange={handleChange}
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
                 required
                 className="pl-10 w-full"
                 placeholder="Correo electrónico"
@@ -104,14 +159,16 @@ export default function Register() {
               Colegio
             </Label>
             <div className="relative">
-              <Select onValueChange={handleSelectChange}>
-                  <SelectTrigger className="w-full pl-10">
+              <Select onValueChange={setColegio} value={colegio}>
+                <SelectTrigger className="w-full pl-10">
                   <SelectValue placeholder="Selecciona un colegio" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Colegio A">Colegio A</SelectItem>
-                  <SelectItem value="Colegio B">Colegio B</SelectItem>
-                  <SelectItem value="Colegio C">Colegio C</SelectItem>
+                  {colegios.map((colegio) => (
+                    <SelectItem key={colegio.id} value={colegio.nombre}>
+                      {colegio.nombre}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <School className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -126,8 +183,8 @@ export default function Register() {
                 id="password"
                 name="password"
                 type="password"
-                value={formData.password}
-                onChange={handleChange}
+                value={contrasena_hasheada}
+                onChange={(event) => setPassword(event.target.value)}
                 required
                 className="pl-10 w-full"
                 placeholder="••••••••"
@@ -144,7 +201,7 @@ export default function Register() {
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
-                onChange={handleChange}
+                onChange={(event) => setConfirmPassword(event.target.value)}
                 required
                 className="pl-10 w-full"
                 placeholder="••••••••"
@@ -152,35 +209,47 @@ export default function Register() {
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
           </div>
-          {error && (
+          <div className="space-y-2">
+            <Label htmlFor="rol" className="text-sm font-medium text-gray-700">
+              Rol
+            </Label>
+            <Input
+              id="rol"
+              name="rol"
+              type="text"
+              value={rol}
+              onChange={(event) => setRol(event.target.value)}
+              required
+              className="w-full"
+              placeholder="rol"
+            />
+          </div>
+          {error.length > 0 && (
             <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{error.join(", ")}</AlertDescription>
             </Alert>
           )}
           <Button
-          type="submit"
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-          disabled={isLoading} // Deshabilita el botón mientras se carga
+            type="submit"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+            disabled={isLoading}
           >
-          {isLoading ? ( // Muestra un ícono de carga si está cargando
-          <div className="flex items-center justify-center">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {/* Ícono de carga */}
-          Registrando...
-          </div>
-          ) : (
-          "Registrarse" // Texto normal cuando no está cargando
-          )}
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <Loader2 className="mr-2 h-4 w--4 animate-spin" />
+                Registrando...
+              </div>
+            ) : (
+              "Registrarse"
+            )}
           </Button>
         </form>
       </CardContent>
       <CardFooter className="bg-gray-50 p-6 flex justify-center">
         <p className="text-sm text-gray-600">
-          ¿Ya tienes una cuenta?{" "}
-          <Link href="/login" className="text-orange-600 hover:text-orange-800 font-medium">
-            Inicia sesión
-          </Link>
+          ¿Ya tienes una cuenta? <Link href="/login" className="text-orange-600 hover:text-orange-800 font-medium">Inicia sesión</Link>
         </p>
       </CardFooter>
     </Card>
-  )
+  );
 }

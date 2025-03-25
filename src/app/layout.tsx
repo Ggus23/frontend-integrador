@@ -1,30 +1,32 @@
-import type React from "react"
-import { AuthProvider } from "@/contexts/AuthContext"
-import { Inter } from "next/font/google"
-import "./globals.css"
+"use client";
 
-const inter = Inter({ subsets: ["latin"] })
+import type React from "react";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { SessionProvider } from "next-auth/react";
+import { Header } from "@/components/Header";
 
-export const metadata = {
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata = { // Movemos metadata fuera del componente
   title: "EduTwinIA",
   description: "Plataforma de colaboración educativa",
-    generator: 'v0.dev'
-}
+  generator: "v0.dev",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="es">
       <body className={inter.className}>
-        <AuthProvider>{children}</AuthProvider>
+        <SessionProvider>
+          <Header />
+          {children}
+        </SessionProvider>
       </body>
     </html>
-  )
+  );
 }
-
-
-
-import './globals.css'
