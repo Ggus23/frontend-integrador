@@ -1,14 +1,11 @@
-"use client";
-
 import type React from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { SessionProvider } from "next-auth/react";
-import { Header } from "@/components/Header";
+import ClientLayout from "./ClientLayout"; // Importa el componente de cliente
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = { // Movemos metadata fuera del componente
+export const metadata = {
   title: "EduTwinIA",
   description: "Plataforma de colaboración educativa",
   generator: "v0.dev",
@@ -22,10 +19,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <SessionProvider>
-          <Header />
-          {children}
-        </SessionProvider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
