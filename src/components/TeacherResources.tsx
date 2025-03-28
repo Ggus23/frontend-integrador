@@ -32,13 +32,13 @@ export function TeacherResources() {
           {resources.map((resource, index) => (
             <Card key={index}>
               <CardHeader>
-                <CardTitle className="flex items-center text-xl font-semibold text-orange-800">
+                <CardTitle className="flex items-center text-xl font-semibold text-orange-950">
                   <resource.icon className="mr-2 h-6 w-6" />
                   {resource.title}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 mb-4">{resource.description}</p>
+                <p className="text-white mb-4">{resource.description}</p>
                 <Button asChild variant="outline" className="w-full">
                   <a href={resource.link}>Acceder</a>
                 </Button>

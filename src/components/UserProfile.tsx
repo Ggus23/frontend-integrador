@@ -5,48 +5,84 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
+import NextLink from "next/link";
+import { useRouter } from 'next/navigation';
 
 export function UserProfile() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const [profile, setProfile] = useState({
+    id: "",
     name: "",
     email: "",
     rol: "",
-    recursos: "",
-    participaciones: "",
-    mensajes: "",
   });
 
   useEffect(() => {
     if (session?.user) {
+      console.log("useEffect Session User:", session.user);
       setProfile({
-        name: session.user.nombre || "", // Verifica si existe
-        email: session.user.email || "", // Verifica si existe
-        rol: session.user.rol || "", // Verifica si existe
-        recursos: session.user.recursos || "", // Verifica si existe
-        participaciones: session.user.participaciones || "", // Verifica si existe
-        mensajes: session.user.mensajes || "", // Verifica si existe
+        id: session.user.id?.toString() || "",
+        name: session.user.name || "",
+        email: session.user.email || "",
+        rol: session.user.role || "",
       });
     }
-  }, [session]);
+  }, [session?.user]); // Solo se ejecuta cuando session.user cambia
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí iría la lógica para actualizar el perfil en el backend
-    console.log("Perfil actualizado:", profile);
+    try {
+      if (!session?.user) {
+        console.error("Session user is undefined.");
+        return;
+      }
+      const id = session?.user.id;
+      if (!id) {
+        console.error("ID is undefined, cannot update profile");
+        return;
+      }
+      console.log("ID:", id);
+      console.log("Profile:", profile);
+      console.log("Session User:", session?.user);
+      console.log("URL:", `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${id}`);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id_usuario: id,
+          nombre: profile.name,
+          email: profile.email,
+          rol: profile.rol,
+        }),
+      });
+
+      if (response.ok) {
+        console.log("Perfil actualizado con éxito");
+        update();
+      } else {
+        console.error("Error al actualizar el perfil");
+        const errorData = await response.json();
+        console.log("Detalles del error:", errorData);
+      }
+    } catch (error) {
+      console.error("Error al actualizar el perfil:", error);
+    }
   };
 
   if (!session) {
     return <div>Cargando...</div>;
   }
+
 
   return (
     <Card>
@@ -75,21 +111,21 @@ export function UserProfile() {
               <Label htmlFor="rol">Rol</Label>
               <Input id="rol" name="rol" value={profile.rol} onChange={handleChange} />
             </div>
-            <div>
-              <Label htmlFor="recursos">Recursos</Label>
-              <Input id="recursos" name="recursos" value={profile.recursos} onChange={handleChange} />
-            </div>
-            <div>
-              <Label htmlFor="participaciones">Participaciones</Label>
-              <Input id="participaciones" name="participaciones" value={profile.participaciones} onChange={handleChange} />
-            </div>
-            <div>
-              <Label htmlFor="mensajes">Mensajes</Label>
-              <Input id="mensajes" name="mensajes" value={profile.mensajes} onChange={handleChange} />
-            </div>
           </div>
           <Button type="submit">Guardar cambios</Button>
         </form>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-200">
+          <Button variant="outline" className="flex items-center">
+            <NextLink href="/create-project" className="flex items-center text-sm font-medium">
+              Crear Proyectos
+            </NextLink>
+          </Button>
+          <Button variant="outline" className="flex items-center">
+            <NextLink href="/my-projects" className="flex items-center text-sm font-medium">
+              Ver Proyectos
+            </NextLink>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

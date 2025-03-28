@@ -28,10 +28,10 @@ export function FeaturedProjects() {
           {projects.map((project, index) => (
             <Card key={index}>
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-orange-800">{project.title}</CardTitle>
+                <CardTitle className="text-xl font-semibold text-orange-950">{project.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 mb-4">{project.description}</p>
+                <p className="text-white mb-4">{project.description}</p>
                 <Button asChild variant="outline" className="w-full">
                   <a href={project.link}>Más información</a>
                 </Button>
