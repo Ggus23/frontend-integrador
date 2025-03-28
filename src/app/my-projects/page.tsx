@@ -1,12 +1,11 @@
-import { Teachers } from "@/components/Teachers"
-import { Header } from "@/components/Header"
+import { UserProjects } from "@/components/UserProjects"
 import { Footer } from "@/components/Footer"
 
-export default function TeachersPage() {
+export default function MyProjectsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-orange-50">
       <main className="flex-grow">
-        <Teachers />
+        <UserProjects />
       </main>
       <Footer />
     </div>

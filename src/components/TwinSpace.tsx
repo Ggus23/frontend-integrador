@@ -13,11 +13,9 @@ export function TwinSpace() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      
       <h2 className="text-3xl font-bold text-center text-orange-950 mb-8">TwinSpace</h2>
-      <p className="text-center text-gray-600 mb-8">
-        TwinSpace es tu plataforma colaborativa para conectar con otros educadores y estudiantes alrededor del mundo.
-        Aquí puedes crear, compartir y participar en proyectos educativos innovadores.
-      </p>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((project, index) => (
           <Card key={index} className="bg-white shadow-lg rounded-lg overflow-hidden">

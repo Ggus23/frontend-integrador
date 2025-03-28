@@ -41,12 +41,12 @@ export function TeacherTestimonials() {
                   </Avatar>
                   <div>
                     <CardTitle className="text-lg font-semibold text-orange-800">{testimonial.name}</CardTitle>
-                    <p className="text-sm text-gray-600">{testimonial.role}</p>
+                    <p className="text-sm text-gray-900">{testimonial.role}</p>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 italic">"{testimonial.content}"</p>
+                <p className="text-white italic">"{testimonial.content}"</p>
               </CardContent>
             </Card>
           ))}
