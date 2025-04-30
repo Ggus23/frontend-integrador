@@ -6,9 +6,9 @@ const handler = NextAuth({
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                id:{label:"id", type:"number"},
+                id: { label: "id", type: "number" },
                 email: { label: "email", type: "email", placeholder: "" },
-                contrasena_hasheada: { label: "Password", type: "password" },
+                contrasena: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
                 try {
@@ -19,7 +19,7 @@ const handler = NextAuth({
                             method: "POST",
                             body: JSON.stringify({
                                 email: credentials?.email,
-                                contrasena_hasheada: credentials?.contrasena_hasheada, // Corregido aquí
+                                contrasena: credentials?.contrasena, // Corregido aquí
                             }),
                             headers: { "Content-Type": "application/json" },
                         }
@@ -31,10 +31,15 @@ const handler = NextAuth({
                     }
 
                     const user = await res.json();
-                    console.log("User from backend:", user); // Agregar esta línea
-                    return user;
 
-                    return user;
+                    return {
+                        id: user.id_usuario, // NextAuth requiere "id" como string
+                        email: user.email,
+                        name: user.nombre, // Opcional pero recomendado
+                        rol: user.rol, // Campo personalizado
+                        token: user.token, // Asegúrate de que el backend envíe el token
+                    };
+
                 } catch (error) {
                     console.error("Error during login:", error);
                     return null;
@@ -43,23 +48,21 @@ const handler = NextAuth({
         }),
     ],
     callbacks: {
-        async jwt({ token, user }) {
-            console.log("JWT Token:", token); // Agregar esta línea
-            console.log("JWT User:", user); // Agregar esta línea
+        async jwt({ token, user }: { token: any; user?: any }) {
             if (user) {
-              return { ...token, ...user, id: user.id }; // Agrega el id al token
+              token.id = user.id;
+              token.rol = user.rol;
+              token.accessToken = user.token; 
             }
             return token;
           },
-          async session({ session, token }) {
-            console.log("Session:", session); // Agregar esta línea
-            console.log("Session Token:", token); // Agregar esta línea
-            if (token) {
-              session.user = { ...token }; // Usa el token fusionado como session.user
-            }
+        async session({ session, token }: any) {
+            session.user.id_usuario = token.id;
+            session.user.rol = token.rol;
+            session.accessToken = token.accessToken;
             return session;
-          },
-        },
+        }
+    },
     pages: {
         signIn: "/login",
     },

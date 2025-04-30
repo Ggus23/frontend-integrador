@@ -9,28 +9,38 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession, signOut } from "next-auth/react";
 import NextLink from "next/link";
-import { useRouter } from 'next/navigation';
 
 export function UserProfile() {
   const { data: session, update } = useSession();
   const [profile, setProfile] = useState({
-    id: "",
-    name: "",
+    id_usuario: "",
+    nombre: "",
     email: "",
     rol: "",
   });
 
+  // Realizamos una solicitud para obtener el perfil actualizado cada vez que la sesión cambie
   useEffect(() => {
-    if (session?.user) {
-      console.log("useEffect Session User:", session.user);
-      setProfile({
-        id: session.user.id?.toString() || "",
-        name: session.user.name || "",
-        email: session.user.email || "",
-        rol: session.user.role || "",
-      });
-    }
-  }, [session?.user]); // Solo se ejecuta cuando session.user cambia
+    const fetchProfile = async () => {
+      if (session?.user) {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${session.user.id_usuario}`);
+        
+        if (response.ok) {
+          const updatedProfile = await response.json();
+          setProfile({
+            id_usuario: updatedProfile.id_usuario.toString(),
+            nombre: updatedProfile.nombre,
+            email: updatedProfile.email,
+            rol: updatedProfile.rol,
+          });
+        } else {
+          console.error("Error al obtener el perfil");
+        }
+      }
+    };
+
+    fetchProfile();
+  }, [session?.user]); // Vuelve a ejecutar la solicitud si cambia la sesión
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
@@ -39,28 +49,14 @@ export function UserProfile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (!session?.user) {
-        console.error("Session user is undefined.");
-        return;
-      }
-      const id = session?.user.id;
-      if (!id) {
-        console.error("ID is undefined, cannot update profile");
-        return;
-      }
-      console.log("ID:", id);
-      console.log("Profile:", profile);
-      console.log("Session User:", session?.user);
-      console.log("URL:", `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${id}`);
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${profile.id_usuario}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id_usuario: id,
-          nombre: profile.name,
+          id_usuario: profile.id_usuario,
+          nombre: profile.nombre,
           email: profile.email,
           rol: profile.rol,
         }),
@@ -68,11 +64,27 @@ export function UserProfile() {
 
       if (response.ok) {
         console.log("Perfil actualizado con éxito");
-        update();
+
+        const updatedProfile = await response.json();
+        setProfile({
+          id_usuario: updatedProfile.id_usuario.toString(),
+          nombre: updatedProfile.nombre,
+          email: updatedProfile.email,
+          rol: updatedProfile.rol,
+        });
+
+        // Actualiza la sesión con los nuevos datos
+        await update({
+          id_usuario: updatedProfile.id_usuario,
+          nombre: updatedProfile.nombre,
+          email: updatedProfile.email,
+          rol: updatedProfile.rol,
+        });
+
+        console.log("Sesión actualizada con éxito");
       } else {
-        console.error("Error al actualizar el perfil");
         const errorData = await response.json();
-        console.log("Detalles del error:", errorData);
+        console.error("Error al actualizar el perfil", errorData);
       }
     } catch (error) {
       console.error("Error al actualizar el perfil:", error);
@@ -83,7 +95,6 @@ export function UserProfile() {
     return <div>Cargando...</div>;
   }
 
-
   return (
     <Card>
       <CardHeader>
@@ -93,15 +104,15 @@ export function UserProfile() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
-              <AvatarImage src="/placeholder-user.jpg" alt={profile.name} />
-              <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
+              <AvatarImage src="/placeholder-user.jpg" alt={profile.nombre} />
+              <AvatarFallback>{profile.nombre.charAt(0)}</AvatarFallback>
             </Avatar>
-            <Button>Cambiar foto</Button>
+            <Button type="button">Cambiar foto</Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name">Nombre</Label>
-              <Input id="name" name="name" value={profile.name} onChange={handleChange} />
+              <Label htmlFor="nombre">Nombre</Label>
+              <Input id="nombre" name="nombre" value={profile.nombre} onChange={handleChange} />
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
@@ -109,7 +120,7 @@ export function UserProfile() {
             </div>
             <div>
               <Label htmlFor="rol">Rol</Label>
-              <Input id="rol" name="rol" value={profile.rol} onChange={handleChange} />
+              <Input id="rol" name="rol" value={profile.rol} onChange={handleChange} disabled />
             </div>
           </div>
           <Button type="submit">Guardar cambios</Button>

@@ -9,13 +9,13 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react"
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export function LoginForm() {
     const [formData, setFormData] = useState({
         email: "",
-        contrasena_hasheada: "",
+        contrasena: "",
     });
     const [error, setError] = useState<string[]>([]); // Cambiado a string[]
     const [isLoading, setIsLoading] = useState(false);
@@ -32,10 +32,10 @@ export function LoginForm() {
 
         const responseNextAuth = await signIn("credentials", {
             email: formData.email,
-            contrasena_hasheada: formData.contrasena_hasheada,
+            contrasena: formData.contrasena,
             redirect: false,
         });
-
+        console.log(responseNextAuth)
         if (responseNextAuth?.error) {
             if (typeof responseNextAuth?.error === 'string') {
                 setError(responseNextAuth.error.split(","));
@@ -45,6 +45,11 @@ export function LoginForm() {
             setIsLoading(false);
             return;
         }
+        const session = await getSession();
+        console.log(session);
+       /*  if (session?.accessToken) {
+            localStorage.setItem("token", session.accessToken);
+        } */
 
         router.push("/UseProfile");
         setIsLoading(false);
@@ -82,10 +87,10 @@ export function LoginForm() {
                         </Label>
                         <div className="relative">
                             <Input
-                                id="contrasena_hasheada"
-                                name="contrasena_hasheada"
+                                id="contrasena"
+                                name="contrasena"
                                 type="password"
-                                value={formData.contrasena_hasheada}
+                                value={formData.contrasena}
                                 onChange={handleChange}
                                 required
                                 className="pl-10 w-full"

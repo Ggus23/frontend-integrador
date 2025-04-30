@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useAuthContext } from "@/contexts/AuthContext"
+import  {useAuthContext}  from "../contexts/SessionAuthProvider"
 import { useRouter } from "next/router"
 import { useEffect } from "react"
 

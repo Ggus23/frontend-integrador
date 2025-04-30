@@ -21,6 +21,7 @@ interface categorias {
 
 export function CreateProject() {
   const [formData, setFormData] = useState({
+    id_usuario: "",
     nombre: "", // Corregido
     descripcion: "",
     category: "",
@@ -65,7 +66,7 @@ export function CreateProject() {
     e.preventDefault();
     setStatus("loading");
     setError(null);
-  
+
     const requestData = {
       nombre: formData.nombre,
       descripcion: formData.descripcion,
@@ -73,31 +74,32 @@ export function CreateProject() {
       id_categoria: parseInt(formData.category),
       id_usuario: 1 // O obtén este ID de tu sistema de autenticación
     };
-  
+
     console.log("Datos a enviar:", requestData);
-  
+
     try {
       const token = localStorage.getItem('token'); // O donde guardes tu token
 
-const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/projects`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`
-  },
-  body: JSON.stringify({
-    nombre: formData.nombre,
-    descripcion: formData.descripcion,
-    Obj_aprendizaje: formData.Obj_aprendizaje,
-    id_categoria: parseInt(formData.category)
-    })
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/projects`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nombre: formData.nombre,
+          descripcion: formData.descripcion,
+          Obj_aprendizaje: formData.Obj_aprendizaje,
+          id_categoria: parseInt(formData.category),
+          id_usuario: 4  // O el ID del usuario autenticado
+        })
       });
       const responseData = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(responseData.message || "Error al crear proyecto");
       }
-  
+
       setStatus("success");
       router.push('/twinspace');
     } catch (error: any) {
@@ -143,13 +145,13 @@ const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/projects`, {
               Categoria
             </Label>
             <div className="relative">
-            <Select onValueChange={(value) => handleSelectChange("category", value)} value={formData.category}>
+              <Select onValueChange={(value) => handleSelectChange("category", value)} value={formData.category}>
                 <SelectTrigger className="w-full pl-10">
                   <SelectValue placeholder="Selecciona una categoria" />
                 </SelectTrigger>
                 <SelectContent>
                   {Categoria.map((categoria) => (
-                    <SelectItem  key={categoria.id} value={categoria.id.toString()}>
+                    <SelectItem key={categoria.id} value={categoria.id.toString()}>
                       {categoria.nombre}
                     </SelectItem>
                   ))}
@@ -169,7 +171,7 @@ const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/projects`, {
               placeholder="¿Qué aprenderán los estudiantes con este proyecto?"
             />
           </div>
-          
+
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
@@ -192,7 +194,7 @@ const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/projects`, {
               </NextLink>
             </Button>
             <Button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white"
-            disabled={status === "loading"}>
+              disabled={status === "loading"}>
               {status === "loading" ? "Creando..." : "Crear Proyecto"}
             </Button>
           </div>

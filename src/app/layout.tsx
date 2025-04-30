@@ -1,8 +1,7 @@
 import type React from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import ClientLayout from "./ClientLayout"; // Importa el componente de cliente
-
+import  SessionAuthProvider  from "../../src/contexts/SessionAuthProvider"
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -19,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <ClientLayout>{children}</ClientLayout>
+        <SessionAuthProvider>{children}</SessionAuthProvider>
       </body>
     </html>
   );

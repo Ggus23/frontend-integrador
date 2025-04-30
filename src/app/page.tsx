@@ -1,4 +1,3 @@
-import { Header } from "@/components/Header"
 import { Hero } from "@/components/Hero"
 import { FeaturedProjects } from "@/components/FeaturedProjects"
 import { JoinCommunity } from "@/components/JoinCommunity"
