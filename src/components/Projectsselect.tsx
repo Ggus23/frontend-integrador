@@ -35,7 +35,7 @@ export function Projects() {
   }, []);
 
   const handleVerDetalles = () => {
-    router.push("/registerestudent");
+    router.push("/twinspace");
   };
 
   return (

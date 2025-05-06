@@ -37,7 +37,7 @@ export function Header() {
           ) : (
             <>
               <Button asChild variant="outline" className="bg-orange-900 text-white hover:bg-orange-800">
-                <Link href="/login">Iniciar Sesión</Link>
+                <Link href="/loginteacher">Iniciar Sesión</Link>
               </Button>
               <Button asChild className="bg-orange-500 text-white hover:bg-orange-400">
                 <Link href="/register">Registrarse</Link>

@@ -72,7 +72,7 @@ export function CreateProject() {
       descripcion: formData.descripcion,
       Obj_aprendizaje: formData.Obj_aprendizaje,
       id_categoria: parseInt(formData.category),
-      id_usuario: 1 // O obtén este ID de tu sistema de autenticación
+      id_usuario: 9 // O obtén este ID de tu sistema de autenticación
     };
 
     console.log("Datos a enviar:", requestData);
@@ -91,7 +91,7 @@ export function CreateProject() {
           descripcion: formData.descripcion,
           Obj_aprendizaje: formData.Obj_aprendizaje,
           id_categoria: parseInt(formData.category),
-          id_usuario: 4  // O el ID del usuario autenticado
+          id_usuario: 9  // O el ID del usuario autenticado
         })
       });
       const responseData = await res.json();
@@ -101,7 +101,7 @@ export function CreateProject() {
       }
 
       setStatus("success");
-      router.push('/twinspace');
+      router.push('/projects'); // Redirigir a la página de dashboard
     } catch (error: any) {
       console.error("Error completo:", error);
       setError(error.message || "Error desconocido al crear proyecto");

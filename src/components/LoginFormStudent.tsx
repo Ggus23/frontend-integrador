@@ -12,7 +12,7 @@ import { LogIn, Mail, Lock, Loader2 } from "lucide-react"
 import { getSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-export function LoginForm() {
+export function LoginFormStudent() {
     const [formData, setFormData] = useState({
         email: "",
         contrasena: "",
@@ -51,14 +51,14 @@ export function LoginForm() {
             localStorage.setItem("token", session.accessToken);
         } */
 
-        router.push("/UseProfileTeacher"); // Redirige a la página de perfil del profesor
+        router.push("/UseProfileStudent"); // Redirige a la página de perfil del profesor
         setIsLoading(false);
     };
     return (
         <Card className="w-full max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-400 text-white p-6">
                 <CardTitle className="text-2xl font-bold flex items-center justify-center">
-                    <LogIn className="mr-2" /> Iniciar Sesión
+                    <LogIn className="mr-2" /> Iniciar Sesión Estudiante
                 </CardTitle>
             </CardHeader>
             <CardContent className="p-6">

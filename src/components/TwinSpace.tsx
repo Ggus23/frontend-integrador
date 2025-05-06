@@ -1,37 +1,37 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+"use client"
+
+import { useState } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
+import { ProjectOverview } from "../components/twinspace/ProjectOverview"
+import { ParticipantsManagement } from "../components/twinspace/ParticipantsManagement"
+import { ProjectPages } from "../components/twinspace/ProjectPages"
 
 export function TwinSpace() {
-  const projects = [
-    {
-      title: "Cultura Global",
-      description: "Explora y comparte tradiciones culturales con estudiantes de todo el mundo.",
-    },
-    { title: "Ciencia Ciudadana", description: "Participa en proyectos de investigación científica colaborativa." },
-    { title: "Arte Sin Fronteras", description: "Crea y exhibe obras de arte en colaboración con otros estudiantes." },
-  ]
+  const [activeTab, setActiveTab] = useState("overview")
 
   return (
     <div className="container mx-auto px-4 py-8">
-      
-      <h2 className="text-3xl font-bold text-center text-orange-950 mb-8">TwinSpace</h2>
+      <h1 className="text-3xl font-bold text-center text-orange-950 mb-8">TwinSpace: Exploradores del Clima Global</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map((project, index) => (
-          <Card key={index} className="bg-white shadow-lg rounded-lg overflow-hidden">
-            <CardHeader className="bg-orange-100">
-              <CardTitle className="text-xl font-semibold text-orange-950">{project.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <p className="text-gray-600 mb-4">{project.description}</p>
-              <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">Unirse al proyecto</Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <div className="mt-12 text-center">
-        <Button className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-3">Crear nuevo proyecto</Button>
-      </div>
+      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsTrigger value="overview">Inicio del Proyecto</TabsTrigger>
+          <TabsTrigger value="participants">Gestión de Participantes</TabsTrigger>
+          <TabsTrigger value="pages">Constructor de Contenidos</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <ProjectOverview />
+        </TabsContent>
+
+        <TabsContent value="participants">
+          <ParticipantsManagement />
+        </TabsContent>
+
+        <TabsContent value="pages">
+          <ProjectPages />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
