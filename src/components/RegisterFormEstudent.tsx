@@ -17,7 +17,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils"; // Asegúrate de tener esta utilidad
 import { ColegioInfo } from "@/types/types";
 
-export default function Register() {
+export default function RegisterStudent() {
   const [commandValue, setCommandValue] = useState("");
   const [filteredColegios, setFilteredColegios] = useState<ColegioInfo[]>([]);
   const [name, setName] = useState<string>("");
@@ -144,7 +144,7 @@ export default function Register() {
     <Card className="w-full max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
       <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-400 text-white p-6">
         <CardTitle className="text-2xl font-bold flex items-center justify-center">
-          <UserPlus className="mr-2" /> Registro de Usuario
+          <UserPlus className="mr-2" /> Registro de Usuario Estudiante
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
@@ -334,7 +334,7 @@ export default function Register() {
       </CardContent>
       <CardFooter className="bg-gray-50 p-6 flex justify-center">
         <p className="text-sm text-gray-600">
-          ¿Ya tienes una cuenta? <Link href="/loginteacher" className="text-orange-600 hover:text-orange-800 font-medium">Inicia sesión</Link>
+          ¿Ya tienes una cuenta? <Link href="/loginstudent" className="text-orange-600 hover:text-orange-800 font-medium">Inicia sesión</Link>
         </p>
       </CardFooter>
     </Card>
