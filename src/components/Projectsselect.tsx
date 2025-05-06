@@ -40,7 +40,7 @@ export function Projects() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-center text-orange-950">Proyectos</h2>
+      <h2 className="text-2xl font-bold text-center text-orange-950">Proyectos Recientes</h2>
 
       {error && <p className="text-red-600 text-center">{error}</p>}
 
