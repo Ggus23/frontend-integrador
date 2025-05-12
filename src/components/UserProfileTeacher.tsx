@@ -10,9 +10,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession, signOut } from "next-auth/react";
 import NextLink from "next/link";
 
-export function UserProfile() {
+export function UserProfileTeacher() {
   const { data: session, update } = useSession();
-  const [profile, setProfile] = useState({
+  const [profileData, setProfileData] = useState({
     id_usuario: "",
     nombre: "",
     email: "",
@@ -21,14 +21,18 @@ export function UserProfile() {
 
   // Realizamos una solicitud para obtener el perfil actualizado cada vez que la sesión cambie
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (session?.user) {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${session.user.id_usuario}`);
-        
+        const fetchProfile = async () => {
+      if (session?.user && session?.accessToken) { // Asegúrate de que el accessToken exista
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${session.user.id_usuario}`, {
+          headers: {
+            'Authorization': `Bearer ${session.accessToken}`, // Añade esta línea
+          },
+        });
+         console.log("ID del usuario:", session.user.id_usuario);
         if (response.ok) {
           const updatedProfile = await response.json();
-          setProfile({
-            id_usuario: updatedProfile.id_usuario.toString(),
+          setProfileData({
+            id_usuario: updatedProfile.id_usuario,
             nombre: updatedProfile.nombre,
             email: updatedProfile.email,
             rol: updatedProfile.rol,
@@ -38,27 +42,26 @@ export function UserProfile() {
         }
       }
     };
-
+    console.log("Sesión:", session);
     fetchProfile();
-  }, [session?.user]); // Vuelve a ejecutar la solicitud si cambia la sesión
-
+  }, [session]);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
+    setProfileData({ ...profileData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${profile.id_usuario}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${profileData.id_usuario}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id_usuario: profile.id_usuario,
-          nombre: profile.nombre,
-          email: profile.email,
-          rol: profile.rol,
+          id_usuario: profileData.id_usuario,
+          nombre: profileData.nombre,
+          email: profileData.email,
+          rol: profileData.rol,
         }),
       });
 
@@ -66,7 +69,7 @@ export function UserProfile() {
         console.log("Perfil actualizado con éxito");
 
         const updatedProfile = await response.json();
-        setProfile({
+        setProfileData({
           id_usuario: updatedProfile.id_usuario.toString(),
           nombre: updatedProfile.nombre,
           email: updatedProfile.email,
@@ -104,23 +107,23 @@ export function UserProfile() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
-              <AvatarImage src="/placeholder-user.jpg" alt={profile.nombre} />
-              <AvatarFallback>{profile.nombre.charAt(0)}</AvatarFallback>
+              <AvatarImage src="/placeholder-user.jpg" alt={profileData.nombre} />
+              <AvatarFallback>{profileData.nombre.charAt(0)}</AvatarFallback>
             </Avatar>
             <Button type="button">Cambiar foto</Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="nombre">Nombre</Label>
-              <Input id="nombre" name="nombre" value={profile.nombre} onChange={handleChange} />
+              <Input id="nombre" name="nombre" value={profileData.nombre} onChange={handleChange} />
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" value={profile.email} onChange={handleChange} />
+              <Input id="email" name="email" type="email" value={profileData.email} onChange={handleChange} />
             </div>
             <div>
               <Label htmlFor="rol">Rol</Label>
-              <Input id="rol" name="rol" value={profile.rol} onChange={handleChange} disabled />
+              <Input id="rol" name="rol" value={profileData.rol} onChange={handleChange} disabled />
             </div>
           </div>
           <Button type="submit">Guardar cambios</Button>

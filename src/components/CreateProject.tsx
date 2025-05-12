@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, Tags } from "lucide-react";
 import NextLink from "next/link";
 import { useRouter } from 'next/navigation';
+import { useSession } from "next-auth/react";
 
 interface categorias {
   id: number;
@@ -31,6 +32,7 @@ export function CreateProject() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const router = useRouter();
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchCategorias = async () => {
@@ -66,13 +68,14 @@ export function CreateProject() {
     e.preventDefault();
     setStatus("loading");
     setError(null);
-
+    
+    console.log("ID de usuario desde sesión:", session?.user?.id_usuario);
     const requestData = {
       nombre: formData.nombre,
       descripcion: formData.descripcion,
       Obj_aprendizaje: formData.Obj_aprendizaje,
       id_categoria: parseInt(formData.category),
-      id_usuario: 9 // O obtén este ID de tu sistema de autenticación
+      id_usuario: session?.user?.id_usuario
     };
 
     console.log("Datos a enviar:", requestData);
@@ -86,13 +89,7 @@ export function CreateProject() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({
-          nombre: formData.nombre,
-          descripcion: formData.descripcion,
-          Obj_aprendizaje: formData.Obj_aprendizaje,
-          id_categoria: parseInt(formData.category),
-          id_usuario: 9  // O el ID del usuario autenticado
-        })
+        body: JSON.stringify(requestData)
       });
       const responseData = await res.json();
 
@@ -101,7 +98,7 @@ export function CreateProject() {
       }
 
       setStatus("success");
-      router.push('/projects'); // Redirigir a la página de dashboard
+      router.push('/my-projects'); // Redirigir a la página de dashboard
     } catch (error: any) {
       console.error("Error completo:", error);
       setError(error.message || "Error desconocido al crear proyecto");
@@ -141,7 +138,7 @@ export function CreateProject() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="categoria" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="categoria" className="text-sm font-medium text-orange-950">
               Categoria
             </Label>
             <div className="relative">
@@ -189,12 +186,12 @@ export function CreateProject() {
 
           <div className="flex justify-end space-x-2">
             <Button variant="outline" className="flex items-center">
-              <NextLink href="/UseProfile" className="flex items-center text-sm font-medium">
+              <NextLink href="/UseProfileTeacher" className="flex items-center text-sm font-medium">
                 Cancelar
               </NextLink>
             </Button>
             <Button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white"
-              disabled={status === "loading"}>
+              disabled={status === "loading" || !session?.user?.id_usuario}>
               {status === "loading" ? "Creando..." : "Crear Proyecto"}
             </Button>
           </div>

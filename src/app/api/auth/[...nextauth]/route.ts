@@ -33,16 +33,17 @@ const handler = NextAuth({
                     const user = await res.json();
 
                     return {
-                        id: user.id_usuario, // NextAuth requiere "id" como string
+                        id: String(user.id_usuario),
+                         id_usuario: user.id_usuario,   
                         email: user.email,
-                        name: user.nombre, // Opcional pero recomendado
-                        rol: user.rol, // Campo personalizado
-                        token: user.token, // Asegúrate de que el backend envíe el token
+                        name: user.nombre,
+                        rol: user.rol,
+                        access_token: user.access_token,
                     };
 
-                } catch (error) {
+                } catch (error: any) {
                     console.error("Error during login:", error);
-                    return null;
+                    throw new Error(error.message || "Ocurrió un error durante el inicio de sesión");
                 }
             },
         }),
@@ -50,14 +51,14 @@ const handler = NextAuth({
     callbacks: {
         async jwt({ token, user }: { token: any; user?: any }) {
             if (user) {
-              token.id = user.id;
+              token.id_usuario = user.id_usuario; // ✅ ahora sí lo va a encontrar
               token.rol = user.rol;
-              token.accessToken = user.token; 
+              token.accessToken = user.access_token;
             }
             return token;
           },
         async session({ session, token }: any) {
-            session.user.id_usuario = token.id;
+            session.user.id_usuario = token.id_usuario;
             session.user.rol = token.rol;
             session.accessToken = token.accessToken;
             return session;
