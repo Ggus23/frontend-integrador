@@ -5,7 +5,7 @@ import { FileText, Video, Headphones } from "lucide-react"
 export function Resources() {
   const resources = [
     {
-      title: "Guías de Estudio",
+      title: "Guías de Estudio para novatos",
       icon: FileText,
       description: "Colección de guías de estudio para diferentes materias.",
     },
