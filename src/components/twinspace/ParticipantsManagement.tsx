@@ -13,68 +13,15 @@ import { Badge } from "@/components/ui/badge"
 import { Search, UserPlus, Mail } from "lucide-react"
 
 // Static data for participants
-const participants = [
-  {
-    id: 1,
-    name: "Laura Sánchez",
-    email: "laura.sanchez@escuela.edu",
-    role: "Coordinador",
-    avatar: "/avatars/laura.jpg",
-    initials: "LS",
-    school: "Colegio San José",
-    country: "España",
-  },
-  {
-    id: 2,
-    name: "Carlos Rodríguez",
-    email: "carlos.rodriguez@escuela.edu",
-    role: "Profesor",
-    avatar: "/avatars/carlos.jpg",
-    initials: "CR",
-    school: "Escuela Primaria Norte",
-    country: "México",
-  },
-  {
-    id: 3,
-    name: "Ana Martínez",
-    email: "ana.martinez@escuela.edu",
-    role: "Profesor",
-    avatar: "/avatars/ana.jpg",
-    initials: "AM",
-    school: "Liceo Internacional",
-    country: "Colombia",
-  },
-  {
-    id: 4,
-    name: "Miguel Torres",
-    email: "miguel.torres@escuela.edu",
-    role: "Estudiante",
-    avatar: "/avatars/miguel.jpg",
-    initials: "MT",
-    school: "Colegio San José",
-    country: "España",
-  },
-  {
-    id: 5,
-    name: "Sofía López",
-    email: "sofia.lopez@escuela.edu",
-    role: "Estudiante",
-    avatar: "/avatars/sofia.jpg",
-    initials: "SL",
-    school: "Escuela Primaria Norte",
-    country: "México",
-  },
-  {
-    id: 6,
-    name: "Juan Pérez",
-    email: "juan.perez@escuela.edu",
-    role: "Invitado",
-    avatar: "/avatars/juan.jpg",
-    initials: "JP",
-    school: "Universidad Pedagógica",
-    country: "Argentina",
-  },
-]
+interface participants  {
+  id: number
+  name: string
+  email: string
+  role: string
+  avatar: string
+  initials: string
+  school: string
+}
 
 export function ParticipantsManagement() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -86,8 +33,7 @@ export function ParticipantsManagement() {
     (participant) =>
       participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       participant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.school.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.country.toLowerCase().includes(searchTerm.toLowerCase()),
+      participant.school.toLowerCase().includes(searchTerm.toLowerCase()) 
   )
 
   const getRoleBadgeColor = (role: string) => {
@@ -186,7 +132,6 @@ export function ParticipantsManagement() {
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Participante</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Escuela</th>
-                  <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">País</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Rol</th>
                   <th className="text-right py-3 px-4 font-semibold text-sm text-gray-600">Acciones</th>
                 </tr>
@@ -207,7 +152,6 @@ export function ParticipantsManagement() {
                       </div>
                     </td>
                     <td className="py-3 px-4 text-sm">{participant.school}</td>
-                    <td className="py-3 px-4 text-sm">{participant.country}</td>
                     <td className="py-3 px-4">
                       <Badge className={getRoleBadgeColor(participant.role)}>{participant.role}</Badge>
                     </td>

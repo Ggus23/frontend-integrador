@@ -1,11 +1,11 @@
 import { Footer } from "@/components/Footer"
-import { TwinSpace } from "@/components/TwinSpace"
+import { Projectsselect } from "@/components/Projectsselect"
 
-export default function TwinSpaceDashboardPage() {
+export default function MyProjectsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-orange-50">
       <main className="flex-grow">
-        <TwinSpace />
+        <Projectsselect />
       </main>
       <Footer />
     </div>

@@ -11,7 +11,7 @@ interface Project {
   descripcion: string;
 }
 
-export function Projects() {
+export function Projectsselect() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();

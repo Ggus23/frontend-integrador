@@ -11,6 +11,7 @@ declare module "next-auth" {
       participaciones?: string;
       mensajes?: string;
     } & DefaultSession["user"];
+    accessToken?: string; // Añadido para el token de acceso
   }
 
   interface User {
