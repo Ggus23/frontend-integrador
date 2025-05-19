@@ -12,24 +12,40 @@ interface Proyecto {
   id_proyecto: string;
   nombre: string;
   descripcion: string;
-  docente: string;
-  mensaje_bienvenida: string;
-  // Agrega más campos si tu backend los retorna
+  id_usuario: number;
+  Obj_aprendizaje: string;
+  usuario: Usuario;
+}
+
+interface Usuario {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: string;
 }
 
 export function ProjectOverview() {
-  const { id } = useParams(); // ← id_proyecto viene como "id"
+  const { id } = useParams(); // ← id_proyecto
   const [project, setProject] = useState<Proyecto | null>(null);
+  const [creator, setCreator] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProject = async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/projects/${id}`);
-        const data = await res.json();
-        setProject(data);
+        const projectData: Proyecto = await res.json();
+        console.log("Proyecto cargado:", projectData);
+        setProject(projectData);
+
+      if (projectData?.usuario) {
+        setCreator(projectData.usuario);
+      } else {
+        console.warn("El proyecto no tiene relación 'usuario'");
+      }
       } catch (error) {
-        console.error("Error fetching project:", error);
+        console.error("Error al cargar el proyecto o el usuario:", error);
+
       } finally {
         setLoading(false);
       }
@@ -57,12 +73,12 @@ export function ProjectOverview() {
         <CardContent className="p-6">
           <div className="flex items-start space-x-4 mb-6">
             <Avatar className="h-12 w-12">
-              <AvatarImage src="/avatars/teacher.jpg" alt={project.docente} />
-              <AvatarFallback>{project.docente?.substring(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback>{creator?.nombre?.substring(0, 2).toUpperCase() || "CR"}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold text-lg">Mensaje de {project.docente}</h3>
-              <p className="text-gray-600">{project.mensaje_bienvenida}</p>
+              <h3 className="font-semibold text-lg">Proyecto creado por: {creator?.nombre || "Usuario desconocido"}</h3>
+              <h4 className="text-lg">Objetivo del aprendizaje: {project.Obj_aprendizaje}</h4>
+              <h4 className="text-lg">Descripción del proyecto: {project.descripcion}</h4>
             </div>
           </div>
 

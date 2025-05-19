@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 interface Project {
-  id: number;
+  id_proyecto: number;
   nombre: string;
   descripcion: string;
 }
@@ -24,6 +24,7 @@ export function Projects() {
           throw new Error("No se pudo cargar los proyectos");
         }
         const data = await res.json();
+        console.log(data); // <-- revisa esto
         setProjects(data);
       } catch (err: any) {
         console.error("Error al obtener proyectos:", err);
@@ -46,7 +47,7 @@ export function Projects() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {projects.map((project) => (
-          <Card key={project.id}>
+          <Card key={project.id_proyecto}>
             <CardHeader>
               <CardTitle>{project.nombre}</CardTitle>
             </CardHeader>
