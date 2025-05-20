@@ -12,8 +12,6 @@ export default function Home() {
         <Hero />
         <FeaturedProjects />
         <JoinCommunity />
-        <TeacherResources />
-        <TeacherTestimonials />
       </main>
       <Footer />
     </div>
