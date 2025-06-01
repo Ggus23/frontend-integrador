@@ -1,6 +1,5 @@
-import { Header } from "@/components/Header"
-import { Footer } from "@/components/Footer"
-import { UserProfile } from "@/components/UserProfileStudent"
+import { Footer } from "../../components/Footer"
+import { UserProfile } from "../../components/UserProfileStudent"
 
 export default function UserProfilePage() {
   return (

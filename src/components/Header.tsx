@@ -10,7 +10,7 @@ export function Header() {
     <header className="bg-orange-950 text-white py-4">
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold">
-          EduTwinIA
+          INKEDUCA
         </Link>
         <nav className="hidden md:flex space-x-4">
           <Link href="/" className="hover:text-orange-300 transition-colors">

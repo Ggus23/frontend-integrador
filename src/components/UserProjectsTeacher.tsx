@@ -11,6 +11,10 @@ interface Project {
   id_proyecto: number;
   nombre: string;
   descripcion: string;
+  categoria: {
+    id_categoria: number
+    nombre: string
+  }
 }
 
 export function UserProjectsTeacher() {
@@ -18,7 +22,7 @@ export function UserProjectsTeacher() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
-  const id_usuario = session?.user?.id_usuario;
+
 
   useEffect(() => {
   const fetchProjects = async () => {
@@ -63,6 +67,7 @@ export function UserProjectsTeacher() {
             </CardHeader>
             <CardContent>
               <p className="mb-4">{project.descripcion}</p>
+              <p className="mb-4">{project.categoria?.nombre}</p>
               <div className="flex gap-5">
                 <Button onClick={() => router.push(`/twinspace/dashboard/${project.id_proyecto}`)}>
                   Ver detalles

@@ -1,5 +1,5 @@
 
-import { LoginFormStudent } from "@/components/LoginFormStudent"
+import { LoginFormStudent } from "../../components/LoginFormStudent"
 
 export default function LoginPage() {
   return (

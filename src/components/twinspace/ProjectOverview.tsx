@@ -14,6 +14,10 @@ interface Proyecto {
   descripcion: string;
   id_usuario: number;
   Obj_aprendizaje: string;
+  categoria: {
+    id_categoria: number;
+    nombre: string;
+  }
   usuario: Usuario;
 }
 
@@ -25,7 +29,7 @@ interface Usuario {
 }
 
 export function ProjectOverview() {
-  const { id } = useParams(); // ← id_proyecto
+  const { id } = useParams() as { id: string }; // ← id_proyecto
   const [project, setProject] = useState<Proyecto | null>(null);
   const [creator, setCreator] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,9 +80,10 @@ export function ProjectOverview() {
               <AvatarFallback>{creator?.nombre?.substring(0, 2).toUpperCase() || "CR"}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold text-lg">Proyecto creado por: {creator?.nombre || "Usuario desconocido"}</h3>
-              <h4 className="text-lg">Objetivo del aprendizaje: {project.Obj_aprendizaje}</h4>
-              <h4 className="text-lg">Descripción del proyecto: {project.descripcion}</h4>
+              <p className="font-semibold text-lg text-gray-100">Proyecto creado por: {creator?.nombre || "Usuario desconocido"}</p>
+              <p className="text-lg text-gray-200">Objetivo del aprendizaje: {project.Obj_aprendizaje}</p>
+              <p className="text-lg text-gray-300">Descripción del proyecto: {project.descripcion}</p>
+              <p className="mb-4 text-gray-400">Categoria del proyecto: {project.categoria?.nombre}</p>
             </div>
           </div>
 
@@ -89,7 +94,7 @@ export function ProjectOverview() {
                 className="flex flex-col items-center justify-center h-24 border-orange-200 hover:bg-orange-50"
                 asChild
               >
-                <Link href="/twinspace/dashboard/participants">
+                <Link href={`/twinspace/dashboard/${id}/participants`}>
                   <Users className="h-6 w-6 mb-2 text-orange-600" />
                   <span>Participantes</span>
                 </Link>

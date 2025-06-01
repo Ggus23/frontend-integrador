@@ -1,6 +1,5 @@
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { TeacherResources } from "@/components/TeacherResources";
+import { Footer } from "../../components/Footer";
+import { TeacherResources } from "../../components/TeacherResources";
 
 export default function TrainingPage() {
   return (

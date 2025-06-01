@@ -8,7 +8,14 @@ interface Proyecto {
   id_proyecto: number
   nombre: string
   descripcion: string
-  link: string // o construyes el link con el id
+  categoria: {
+    id_categoria: number
+    nombre: string
+  }
+  usuario: {
+    id_usuario: number
+    nombre: string
+  }
 }
 
 export function FeaturedProjects() {
@@ -49,9 +56,11 @@ export function FeaturedProjects() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-white mb-4">{project.descripcion}</p>
+                <p className="text-gray-100 mb-2">Creado por: {project.usuario?.nombre || 'Desconocido'}</p>
+                <p className="text-gray-100 mb-2">Categoría: {project.categoria?.nombre || 'Sin categoría'}</p>
+                <p className="text-orange-950 mb-4">{project.descripcion}</p>
                 <Button asChild variant="outline" className="w-full">
-                  <a href={`/projects/${project.id_proyecto}`}>Más información</a>
+                  <a href={`/twinspace/dashboard/${project.id_proyecto}`}>Más información</a>
                 </Button>
               </CardContent>
             </Card>

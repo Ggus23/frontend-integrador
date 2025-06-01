@@ -13,6 +13,18 @@ import { CheckCircle, Tags } from "lucide-react";
 import NextLink from "next/link";
 import { useRouter } from 'next/navigation';
 import { useSession } from "next-auth/react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface categorias {
   id: number;
@@ -33,6 +45,7 @@ export function CreateProject() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const router = useRouter();
   const { data: session } = useSession();
+  const selectedCategoria = Categoria.find(c => c.id === parseInt(formData.category));
 
   useEffect(() => {
     const fetchCategorias = async () => {
@@ -148,7 +161,11 @@ export function CreateProject() {
                 </SelectTrigger>
                 <SelectContent>
                   {Categoria.map((categoria) => (
-                    <SelectItem key={categoria.id} value={categoria.id.toString()}>
+                    <SelectItem
+                      key={categoria.id}
+                      value={categoria.id.toString()}
+                      title={categoria.descripcion} // ✅ nativo
+                    >
                       {categoria.nombre}
                     </SelectItem>
                   ))}

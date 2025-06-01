@@ -1,5 +1,5 @@
-import { Footer } from "@/components/Footer"
-import { Projectsselect } from "@/components/Projectsselect"
+import { Footer } from "../../components/Footer"
+import { Projectsselect } from "../../components/Projectsselect"
 
 export default function MyProjectsPage() {
   return (

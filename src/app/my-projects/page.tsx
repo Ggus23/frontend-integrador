@@ -1,5 +1,5 @@
-import { UserProjectsTeacher } from "@/components/UserProjectsTeacher"
-import { Footer } from "@/components/Footer"
+import { UserProjectsTeacher } from "../../components/UserProjectsTeacher"
+import { Footer } from "../../components/Footer"
 
 export default function MyProjectsPage() {
   return (

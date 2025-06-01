@@ -1,6 +1,6 @@
-import { Header } from "@/components/Header"
-import { Footer } from "@/components/Footer"
-import { Chat } from "@/components/chat/Chat"
+import { Header } from "../../components/Header"
+import { Footer } from "../../components/Footer"
+import { Chat } from "../../components/chat/Chat"
 
 export default function ChatPage() {
   return (

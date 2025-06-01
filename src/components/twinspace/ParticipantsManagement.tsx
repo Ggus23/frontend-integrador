@@ -1,39 +1,71 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Search, UserPlus, Mail } from "lucide-react"
 
-// Static data for participants
-interface participants  {
-  id: number
-  name: string
+interface Usuario {
+  id_usuario: number
+  nombre: string
   email: string
-  role: string
-  avatar: string
-  initials: string
-  school: string
+  rol: string
 }
 
-export function ParticipantsManagement() {
+interface Participant {
+  id_usuario: number
+  id_proyecto: number
+  usuario: Usuario
+  rol: string
+}
+
+export function ParticipantsManagement({ idProyecto }: { idProyecto: number }) {
+  const [participants, setParticipants] = useState<Usuario[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [showInviteForm, setShowInviteForm] = useState(false)
   const [inviteEmail, setInviteEmail] = useState("")
   const [inviteRole, setInviteRole] = useState("Estudiante")
 
-  const filteredParticipants = participants.filter(
-    (participant) =>
-      participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.school.toLowerCase().includes(searchTerm.toLowerCase()) 
+  useEffect(() => {
+  const fetchParticipants = async () => {
+    try {
+      console.log('ID del proyecto:', idProyecto);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/participants/project/${idProyecto}`)
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Error HTTP ${response.status}: ${text}`);
+      }
+      const data = await response.json()
+
+      if (Array.isArray(data)) {
+        const usuarios = data.map((p: Participant) => p.usuario)
+        setParticipants(usuarios)
+      } else {
+        console.error("La respuesta no es un array:", data)
+        setParticipants([])
+      }
+    } catch (error) {
+      console.error("Error al obtener participantes:", error)
+      setParticipants([])
+    }
+  }
+
+  fetchParticipants()
+}, [idProyecto])
+  const filteredParticipants = participants.filter((participant) =>
+    participant.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    participant.email.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const getRoleBadgeColor = (role: string) => {
@@ -48,14 +80,12 @@ export function ParticipantsManagement() {
 
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, this would send an invitation
     console.log("Invitación enviada a:", inviteEmail, "con rol:", inviteRole)
     setInviteEmail("")
     setShowInviteForm(false)
   }
 
   const handleRoleChange = (participantId: number, newRole: string) => {
-    // In a real app, this would update the user's role
     console.log("Cambio de rol para usuario ID:", participantId, "Nuevo rol:", newRole)
   }
 
@@ -68,7 +98,7 @@ export function ParticipantsManagement() {
             onClick={() => setShowInviteForm(!showInviteForm)}
             className="bg-orange-500 hover:bg-orange-600 text-white"
           >
-            <UserPlus className="mr-2 h-4 w-4" /> Invitar Participante
+            <UserPlus className="mr-2 h-4 w-4" /> Agregar Participante
           </Button>
         </CardHeader>
         <CardContent className="p-6">
@@ -109,7 +139,7 @@ export function ParticipantsManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white">
-                    Enviar Invitación
+                    Agregar
                   </Button>
                 </div>
               </form>
@@ -131,47 +161,29 @@ export function ParticipantsManagement() {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Participante</th>
-                  <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Escuela</th>
+                  <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Correo</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Rol</th>
-                  <th className="text-right py-3 px-4 font-semibold text-sm text-gray-600">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredParticipants.map((participant) => (
-                  <tr key={participant.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={participant.id_usuario} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-3 px-4">
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={participant.avatar || "/placeholder.svg"} alt={participant.name} />
-                          <AvatarFallback>{participant.initials}</AvatarFallback>
+                          <AvatarImage src="/placeholder.svg" alt={participant.nombre} />
+                          <AvatarFallback>{participant.nombre.slice(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{participant.name}</p>
-                          <p className="text-xs text-gray-500">{participant.email}</p>
+                          <p className="font-medium">{participant.nombre}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm">{participant.school}</td>
+                    <td className="py-3 px-4 text-sm">{participant.email}</td>
                     <td className="py-3 px-4">
-                      <Badge className={getRoleBadgeColor(participant.role)}>{participant.role}</Badge>
+                      <Badge className={getRoleBadgeColor(participant.rol)}>{participant.rol}</Badge>
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      {participant.role !== "Coordinador" && (
-                        <Select
-                          defaultValue={participant.role}
-                          onValueChange={(value) => handleRoleChange(participant.id, value)}
-                        >
-                          <SelectTrigger className="w-[130px] h-8 text-xs">
-                            <SelectValue placeholder="Cambiar rol" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Profesor">Profesor</SelectItem>
-                            <SelectItem value="Estudiante">Estudiante</SelectItem>
-                            <SelectItem value="Invitado">Invitado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </td>
+            
                   </tr>
                 ))}
               </tbody>

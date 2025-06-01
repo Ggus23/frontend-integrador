@@ -1,6 +1,6 @@
 
 
-import RegisterStudent from "@/components/RegisterFormEstudent"
+import RegisterStudent from "../../components/RegisterFormEstudent"
 
 export default function RegisterPage() {
   return (

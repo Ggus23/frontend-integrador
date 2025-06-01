@@ -5,7 +5,7 @@ import { BookOpen, Video, FileText } from "lucide-react"
 const resources = [
   {
     title: "Guía de Inicio Rápido",
-    description: "Aprende los fundamentos para crear tu primer proyecto educativo internacional.",
+    description: "Aprende los fundamentos para crear tu primer proyecto educativo.",
     icon: BookOpen,
     link: "/resources/quick-start-guide",
   },

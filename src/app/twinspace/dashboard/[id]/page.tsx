@@ -1,5 +1,5 @@
-import { Footer } from "@/components/Footer"
-import { ProjectOverview } from "@/components/twinspace/ProjectOverview"
+import { Footer } from "../../../../components/Footer"
+import { ProjectOverview } from "../../../../components/twinspace/ProjectOverview"
 
 export default function TwinSpaceDashboardPage() {
   return (
