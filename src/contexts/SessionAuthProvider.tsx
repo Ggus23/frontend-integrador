@@ -59,7 +59,6 @@ const SessionAuthProvider = ({ children }: Props) => {
   return (
     <SessionProvider>
       <AuthContext.Provider value={{ user: auth, loading, login, logout, register }}>
-        <Header />
         {children}
       </AuthContext.Provider>
     </SessionProvider>

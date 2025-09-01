@@ -1,342 +1,209 @@
 "use client"
 
 import type React from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User, Mail, Lock, GraduationCap } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { UserPlus, User, Mail, Lock, School, Loader2 } from "lucide-react";
-import { signIn } from "next-auth/react";
-import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils"; // Asegúrate de tener esta utilidad
-import { ColegioInfo } from "@/types/types";
+import type { ColegioInfo } from "@/types/types";
 
-export default function Register() {
-  const [commandValue, setCommandValue] = useState("");
-  const [filteredColegios, setFilteredColegios] = useState<ColegioInfo[]>([]);
-  const [name, setName] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [colegio, setColegio] = useState<string>("");
-  const [contrasena, setPassword] = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
-  const [rol, setRol] = useState<string>("");
-  const [colegiosCochabamba, setColegiosCochabamba] = useState<ColegioInfo[]>([]);
-  const [distrito, setDistrito] = useState<string>("");
-  const [zona, setZona] = useState<string>("");
+export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
+  // --- LÓGICA DEL PRIMER COMPONENTE ---
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    career: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string[]>([]);
+  const [errorGlobal, setErrorGlobal] = useState<string[]>([]);
   const router = useRouter();
-  const [openCombobox, setOpenCombobox] = useState(false);
-  const selectedColegio = colegiosCochabamba.find(c => c.id === colegio);
 
-  const fetchColegios = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/schools`, {
-      method: 'GET', 
-      headers: {
-        'Content-Type': 'application/json', 
-      },
-    });
-  
-    try {
-      if (!res.ok) {
-        const errorData = await res.json(); // Intenta obtener detalles del error del servidor
-        const errorMessage = errorData?.message || `Error fetching colegios: ${res.status}`;
-        throw new Error(errorMessage);
-      }
-      const data: ColegioInfo[] = await res.json();
-      const processedData = data.sort((a, b) => a.nombre.localeCompare(b.nombre));
-      setColegiosCochabamba(processedData);
-      setFilteredColegios(processedData); // Inicialmente, mostrar todos
-    } catch (err) {
-      console.error("Error fetching colegios:", err);
-      if (err instanceof Error) {
-        setError([err.message || "Error al cargar los colegios."]);
-      } else {
-        setError(["Error al cargar los colegios."]);
-      }
-    }
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
-  
-  useEffect(() => {
-    fetchColegios();
-  }, []);
 
-  useEffect(() => {
-    const filtered = colegiosCochabamba.filter((c) => {
-      const distritoMatch = !distrito || (c.distrito && c.distrito.toLowerCase().includes(distrito.toLowerCase()));
-      const zonaMatch = !zona || (c.zona && c.zona.toLowerCase().includes(zona.toLowerCase()));
-      const nombreMatch = c.nombre.toLowerCase().includes(commandValue.toLowerCase());
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const newErrors: Record<string, string> = {};
 
-      return distritoMatch && zonaMatch && nombreMatch;
+    if (!formData.fullName.trim()) newErrors.fullName = "El nombre completo es requerido";
+    if (!formData.email.trim()) newErrors.email = "El correo institucional es requerido";
+    else if (!formData.email.includes("@") || !formData.email.includes(".edu"))
+      newErrors.email = "Debe ser un correo institucional válido (.edu)";
+    if (!formData.password.trim()) newErrors.password = "La contraseña es requerida";
+    else if (formData.password.length < 6) newErrors.password = "Debe tener al menos 6 caracteres";
+    if (formData.password !== formData.confirmPassword)
+      newErrors.confirmPassword = "Las contraseñas no coinciden";
+    if (!formData.career) newErrors.career = "Debe seleccionar una carrera";
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    setIsLoading(true);
+    setErrorGlobal([]);
+
+    // Registro en el backend
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nombre: formData.fullName,
+        email: formData.email,
+        contrasena: formData.password,
+        carrera: formData.career,
+      }),
     });
-    setFilteredColegios(filtered);
-  }, [commandValue, colegiosCochabamba, distrito, zona]);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-        setIsLoading(true);
-        setError([]);
-    
-        if (contrasena !== confirmPassword) {
-          setError(["Las contraseñas no coinciden."]);
-          setIsLoading(false);
-          return;
-        }
-    
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`,
-            {
-            method: "POST",
-            headers: {
-            "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              nombre: name,
-              email: email,
-              colegio: selectedColegio?.nombre, // Usamos el nombre del colegio seleccionado
-              contrasena: contrasena,
-              rol: rol,
-           }),
-           }
-         );
     const responseAPI = await res.json();
-
     if (!res.ok) {
-      if (typeof responseAPI?.message === 'string') {
-        setError([responseAPI.message]);
-      } else if (Array.isArray(responseAPI?.message)) {
-        setError(responseAPI.message);
-      } else {
-        setError(["Ocurrió un error desconocido."]);
-      }
+      setErrorGlobal([typeof responseAPI.message === "string" ? responseAPI.message : "Error desconocido"]);
       setIsLoading(false);
       return;
     }
 
+    // Login automático con NextAuth
     const responseNextAuth = await signIn("credentials", {
-      email,
-      contrasena,
+      email: formData.email,
+      contrasena: formData.password,
       redirect: false,
     });
-
     if (responseNextAuth?.error) {
-      if (typeof responseNextAuth?.error === 'string') {
-        setError(responseNextAuth.error.split(","));
-      } else {
-        setError(["Ocurrió un error al iniciar sesión."]);
-      }
+      setErrorGlobal([responseNextAuth.error]);
       setIsLoading(false);
       return;
     }
 
-    router.push("/loginstudent");
+    router.push("/dashboard");
     setIsLoading(false);
   };
 
-
+  // --- RETURN DEL SEGUNDO COMPONENTE (DISEÑO) ---
   return (
-    <Card className="w-full max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-400 text-white p-6">
-        <CardTitle className="text-2xl font-bold flex items-center justify-center">
-          <UserPlus className="mr-2" /> Registro de Usuario
-        </CardTitle>
+    <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0">
+      <CardHeader className="text-center space-y-4">
+        <div className="mx-auto w-16 h-16 bg-[#B6B9F2] rounded-full flex items-center justify-center">
+          <GraduationCap className="w-8 h-8 text-white" />
+        </div>
+        <CardTitle className="text-2xl font-bold text-[#0D0D0D]">Crear Cuenta</CardTitle>
+        <CardDescription className="text-gray-600">
+          Regístrate para comenzar a usar el asistente pedagógico
+        </CardDescription>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-              Nombre completo
-            </Label>
+            <Label htmlFor="fullName">Nombre Completo</Label>
             <div className="relative">
+              <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                id="name"
-                name="name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                required
-                className="pl-10 w-full"
-                placeholder="Nombre completo"
+                id="fullName"
+                type="text"
+                value={formData.fullName}
+                onChange={(e) => handleInputChange("fullName", e.target.value)}
+                className={`pl-10 ${errors.fullName ? "border-red-500" : ""}`}
               />
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
+            {errors.fullName && <p className="text-sm text-red-500">{errors.fullName}</p>}
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-              Correo electrónico
-            </Label>
+            <Label htmlFor="email">Correo Institucional</Label>
             <div className="relative">
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 id="email"
-                name="email"
                 type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-                className="pl-10 w-full"
-                placeholder="Correo electrónico"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
               />
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
+            {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="rol" className="text-sm font-medium text-gray-700">
-              Rol
-            </Label>
-            <Input
-              id="rol"
-              name="rol"
-              type="text"
-              value={rol}
-              onChange={(event) => setRol(event.target.value)}
-              required
-              className="w-full"
-              placeholder="rol"
-            />
+            <Label htmlFor="career">Carrera</Label>
+            <Select value={formData.career} onValueChange={(v) => handleInputChange("career", v)}>
+              <SelectTrigger className={errors.career ? "border-red-500" : ""}>
+                <SelectValue placeholder="Selecciona tu carrera" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ingenieria-sistemas">Ingeniería de Sistemas</SelectItem>
+                <SelectItem value="ingenieria-software">Ingeniería de Software</SelectItem>
+                <SelectItem value="ciencias-computacion">Ciencias de la Computación</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.career && <p className="text-sm text-red-500">{errors.career}</p>}
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="distrito" className="text-sm font-medium text-gray-700">
-              Distrito
-            </Label>
-            <Input
-              id="distrito"
-              name="distrito"
-              value={distrito}
-              onChange={(event) => setDistrito(event.target.value)}
-              className="w-full"
-              placeholder="Ej: Distrito Norte"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="zona" className="text-sm font-medium text-gray-700">
-              Zona
-            </Label>
-            <Input
-              id="zona"
-              name="zona"
-              value={zona}
-              onChange={(event) => setZona(event.target.value)}
-              className="w-full"
-              placeholder="Ej: Zona Escolar 12"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="school" className="text-sm font-medium text-gray-700">
-              Colegio
-            </Label>
-            <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={openCombobox}
-                  className={cn(
-                    "w-full justify-between pl-10",
-                    openCombobox && "ring-ring-foreground ring-2"
-                  )}
-                >
-                  {selectedColegio?.nombre || "Selecciona un colegio..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50 shrink-0" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                <Command>
-                  <CommandInput
-                    placeholder="Buscar colegio..."
-                    value={commandValue}
-                    onValueChange={setCommandValue}
-                    className="focus-visible:ring-ring-foreground"
-                  />
-                  <CommandEmpty>No se encontraron colegios.</CommandEmpty>
-                  <CommandGroup>
-                    {filteredColegios.map((colegioItem) => (
-                      <CommandItem
-                        key={colegioItem.id}
-                        value={colegioItem.nombre}
-                        onSelect={(currentValue) => {
-                          setColegio(colegioItem.id);
-                          setCommandValue("");
-                          setOpenCombobox(false);
-                        }}
-                      >
-                        <School className="mr-2 h-4 w-4" />
-                        <span>{colegioItem.nombre}</span>
-                        {colegio === colegioItem.id && (
-                          <Check className="ml-auto h-4 w-4" />
-                        )}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-              Contraseña
-            </Label>
+            <Label htmlFor="password">Contraseña</Label>
             <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 id="password"
-                name="password"
                 type="password"
-                value={contrasena}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-                className="pl-10 w-full"
-                placeholder="••••••••"
+                value={formData.password}
+                onChange={(e) => handleInputChange("password", e.target.value)}
+                className={`pl-10 ${errors.password ? "border-red-500" : ""}`}
               />
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
+            {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-              Confirmar contraseña
-            </Label>
+            <Label htmlFor="confirmPassword">Repetir Contraseña</Label>
             <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 id="confirmPassword"
-                name="confirmPassword"
                 type="password"
-                onChange={(event) => setConfirmPassword(event.target.value)}
-                required
-                className="pl-10 w-full"
-                placeholder="••••••••"
+                value={formData.confirmPassword}
+                onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                className={`pl-10 ${errors.confirmPassword ? "border-red-500" : ""}`}
               />
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
+            {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword}</p>}
           </div>
-          {error.length > 0 && (
+
+          {errorGlobal.length > 0 && (
             <Alert variant="destructive">
-              <AlertDescription>{error.join(", ")}</AlertDescription>
+              <AlertDescription>{errorGlobal.join(", ")}</AlertDescription>
             </Alert>
           )}
+
           <Button
             type="submit"
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white"
             disabled={isLoading}
+            className="w-full bg-[#B6B9F2] hover:bg-[#a5a8f0] text-white font-medium py-2.5 transition-colors"
           >
-            {isLoading ? (
-              <div className="flex items-center justify-center">
-                <Loader2 className="mr-2 h-4 w--4 animate-spin" />
-                Registrando...
-              </div>
-            ) : (
-              "Registrarse"
-            )}
+            {isLoading ? "Registrando..." : "Crear Cuenta"}
           </Button>
+
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              ¿Ya tienes cuenta?{" "}
+              <button
+                type="button"
+                onClick={onSwitchToLogin}
+                className="text-[#B6B9F2] hover:underline"
+              >
+                Inicia sesión aquí
+              </button>
+            </p>
+          </div>
         </form>
       </CardContent>
-      <CardFooter className="bg-gray-50 p-6 flex justify-center">
-        <p className="text-sm text-gray-600">
-          ¿Ya tienes una cuenta? <Link href="/loginteacher" className="text-orange-600 hover:text-orange-800 font-medium">Inicia sesión</Link>
-        </p>
-      </CardFooter>
     </Card>
   );
 }

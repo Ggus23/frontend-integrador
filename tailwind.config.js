@@ -1,18 +1,20 @@
-import type { Config } from "tailwindcss";
-
+/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  theme: {
+  
+theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background: "oklch(1 0 0)", // o el color que quieras
+        foreground: "oklch(0.145 0 0)",
+        border: "oklch(0.922 0 0)",
+        ring: "oklch(0.7 0.2 0)",
       },
     },
   },
   plugins: [],
-} satisfies Config;
+}

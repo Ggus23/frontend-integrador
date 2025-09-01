@@ -2,131 +2,136 @@
 
 import type React from "react"
 import { useState } from "react"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { signIn, getSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Mail, Lock, GraduationCap, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { LogIn, Mail, Lock, Loader2 } from "lucide-react"
-import { getSession, signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
-export function LoginForm() {
-    const [formData, setFormData] = useState({
-        email: "",
-        contrasena: "",
-    });
-    const [error, setError] = useState<string[]>([]); // Cambiado a string[]
-    const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
+interface LoginFormProps {
+  onSwitchToRegister: () => void
+}
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [errors, setErrors] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError([]); // Inicializa como un array vacío
-        setIsLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrors([])
+    setIsLoading(true)
 
-        const responseNextAuth = await signIn("credentials", {
-            email: formData.email,
-            contrasena: formData.contrasena,
-            redirect: false,
-        });
-        console.log(responseNextAuth)
-        if (responseNextAuth?.error) {
-            if (typeof responseNextAuth?.error === 'string') {
-                setError(responseNextAuth.error.split(","));
-            } else {
-                setError(["an error occurred during sign in"]);
-            }
-            setIsLoading(false);
-            return;
-        }
-        const session = await getSession();
-        console.log(session);
-       /*  if (session?.accessToken) {
-            localStorage.setItem("token", session.accessToken);
-        } */
+    const responseNextAuth = await signIn("credentials", {
+      email,
+      contrasena: password,
+      redirect: false,
+    })
 
-        router.push("/UseProfileTeacher"); // Redirige a la página de perfil del profesor
-        setIsLoading(false);
-    };
-    return (
-        <Card className="w-full max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-400 text-white p-6">
-                <CardTitle className="text-2xl font-bold flex items-center justify-center">
-                    <LogIn className="mr-2" /> Iniciar Sesión
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                            Correo electrónico
-                        </Label>
-                        <div className="relative">
-                            <Input
-                                id="email"
-                                name="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                required
-                                className="pl-10 w-full"
-                                placeholder="email"
-                            />
-                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="contrasena_hasheada" className="text-sm font-medium text-gray-700">
-                            Contraseña
-                        </Label>
-                        <div className="relative">
-                            <Input
-                                id="contrasena"
-                                name="contrasena"
-                                type="password"
-                                value={formData.contrasena}
-                                onChange={handleChange}
-                                required
-                                className="pl-10 w-full"
-                                placeholder="••••••••"
-                            />
-                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                        </div>
-                    </div>
-                    {error && (
-                        <Alert variant="destructive">
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                    )}
-                    <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white" disabled={isLoading}>
-                        {isLoading ? (
-                            <div className="flex items-center justify-center">
-                                <Loader2 className="mr-2 h-4 w--4 animate-spin" />
-                                Iniciando sesión...
-                            </div>
-                        ) : (
-                            "Iniciar Sesión"
-                        )}
-                    </Button>
-                </form>
-            </CardContent>
-            <CardFooter className="bg-gray-50 p-6 flex flex-col items-center space-y-2">
-                <Link href="/forgot-password" className="text-sm text-orange-600 hover:text-orange-800">
-                    ¿Olvidaste tu contraseña?
-                </Link>
-                <p className="text-sm text-gray-600">
-                    ¿No tienes una cuenta?{" "}
-                    <Link href="/register" className="text-orange-600 hover:text-orange-800 font-medium">
-                        Regístrate
-                    </Link>
-                </p>
-            </CardFooter>
-        </Card>
-    );
+    if (responseNextAuth?.error) {
+      if (typeof responseNextAuth.error === "string") {
+        setErrors(responseNextAuth.error.split(","))
+      } else {
+        setErrors(["Ocurrió un error al iniciar sesión"])
+      }
+      setIsLoading(false)
+      return
+    }
+
+    await getSession()
+    router.push("/UseProfileTeacher") // o "/dashboard" según tu flujo
+    setIsLoading(false)
+  }
+
+  return (
+    <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0">
+      <CardHeader className="text-center space-y-4">
+        <div className="mx-auto w-16 h-16 bg-[#F28907] rounded-full flex items-center justify-center">
+          <GraduationCap className="w-8 h-8 text-white" />
+        </div>
+        <CardTitle className="text-2xl font-bold text-[#0D0D0D]">Asistente Pedagógico IA</CardTitle>
+        <CardDescription className="text-gray-600">Inicia sesión para acceder a tu panel de control</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-[#0D0D0D] font-medium">
+              Correo Electrónico
+            </Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="tu.correo@universidad.edu"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="pl-10 border-gray-200 focus:border-[#B6B9F2] focus:ring-[#B6B9F2]"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-[#0D0D0D] font-medium">
+              Contraseña
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                id="password"
+                name="contrasena"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="pl-10 border-gray-200 focus:border-[#B6B9F2] focus:ring-[#B6B9F2]"
+              />
+            </div>
+          </div>
+
+          {errors.length > 0 && (
+            <Alert variant="destructive">
+              <AlertDescription>{errors.join(", ")}</AlertDescription>
+            </Alert>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full bg-[#F28907] hover:bg-[#e07806] text-white font-medium py-2.5 transition-colors"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Iniciando sesión...
+              </div>
+            ) : (
+              "Iniciar Sesión"
+            )}
+          </Button>
+
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              ¿No tienes cuenta?{" "}
+              <button
+                type="button"
+                onClick={onSwitchToRegister}
+                className="text-[#F28907] hover:text-[#e07806] font-medium hover:underline transition-colors"
+              >
+                Regístrate aquí
+              </button>
+            </p>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  )
 }
