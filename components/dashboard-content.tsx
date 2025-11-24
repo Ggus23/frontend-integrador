@@ -1,52 +1,157 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FileText, CheckCircle, Clock, TrendingUp, Upload, Sparkles } from "lucide-react"
 import Link from "next/link"
-import { mockAIProgress, mockHistory } from "@/lib/mock"
 import { AIProgressBanner } from "@/components/ai/ai-progress-banner"
-import { AIProvenanceTag } from "@/components/ai/ai-provenance-tag"
+import { AIProvenanceTag, type ProvenanceSource } from "@/components/ai/ai-provenance-tag"
 import { cn } from "@/lib/utils"
 
-const stats = [
-  {
-    title: "Análisis IA Completados",
-    value: mockAIProgress.completed.toString(),
-    change: `${mockAIProgress.total} total`,
-    icon: CheckCircle,
-    color: "text-primary",
-  },
-  {
-    title: "En Revisión",
-    value: mockAIProgress.reviewing.toString(),
-    change: "Requieren atención",
-    icon: Clock,
-    color: "text-foreground",
-  },
-  {
-    title: "Sugerencias Listas",
-    value: mockAIProgress.ready.toString(),
-    change: "Disponibles para revisar",
-    icon: Sparkles,
-    color: "text-primary",
-  },
-  {
-    title: "Analizando",
-    value: mockAIProgress.analyzing.toString(),
-    change: "En proceso",
-    icon: TrendingUp,
-    color: "text-foreground",
-  },
-]
+type DashboardSummary = {
+  role: string
+  completed: number
+  reviewing: number
+  ready: number
+  analyzing: number
+  total: number
+}
+
+type DashboardHistoryItem = {
+  id: string | number
+  version: string
+  source: ProvenanceSource   // 👈 AHORA usa el mismo tipo que AIProvenanceTag
+  changes: string
+  author: string
+  date: string
+  status: "approved" | "reviewing" | "draft" | string
+}
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000"
+
+function getAccessToken(): string | null {
+  if (typeof window === "undefined") return null
+  return localStorage.getItem("accessToken")
+}
 
 export function DashboardContent() {
-  const aiProgressPercentage = Math.round((mockAIProgress.completed / mockAIProgress.total) * 100)
+  const [summary, setSummary] = useState<DashboardSummary | null>(null)
+  const [history, setHistory] = useState<DashboardHistoryItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      try {
+        const token = getAccessToken()
+
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+        }
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`
+        }
+
+        const [summaryRes, historyRes] = await Promise.all([
+          fetch(`${API_BASE}/auth/dashboard/summary`, { headers }),
+          fetch(`${API_BASE}/auth/dashboard/history`, { headers }),
+        ])
+
+        if (!summaryRes.ok) {
+          throw new Error(`Error al obtener resumen (${summaryRes.status})`)
+        }
+        if (!historyRes.ok) {
+          throw new Error(`Error al obtener historial (${historyRes.status})`)
+        }
+
+        const summaryData: DashboardSummary = await summaryRes.json()
+        const historyData: DashboardHistoryItem[] = await historyRes.json()
+
+        if (!cancelled) {
+          setSummary(summaryData)
+          setHistory(historyData)
+        }
+      } catch (err: any) {
+        console.error("Error cargando dashboard:", err)
+        if (!cancelled) {
+          setError(err.message ?? "Error al cargar el dashboard")
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    load()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-muted-foreground">Cargando resumen del PGF...</p>
+      </div>
+    )
+  }
+
+  if (error || !summary) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-red-500">
+          {error ?? "No se pudo cargar la información del dashboard."}
+        </p>
+      </div>
+    )
+  }
+
+  const aiProgressPercentage =
+    summary.total > 0 ? Math.round((summary.completed / summary.total) * 100) : 0
+
+  const stats = [
+    {
+      title: "Análisis IA Completados",
+      value: summary.completed.toString(),
+      change: `${summary.total} total`,
+      icon: CheckCircle,
+      color: "text-primary",
+    },
+    {
+      title: "En Revisión",
+      value: summary.reviewing.toString(),
+      change: "Requieren atención",
+      icon: Clock,
+      color: "text-foreground",
+    },
+    {
+      title: "Sugerencias Listas",
+      value: summary.ready.toString(),
+      change: "Disponibles para revisar",
+      icon: Sparkles,
+      color: "text-primary",
+    },
+    {
+      title: "Analizando",
+      value: summary.analyzing.toString(),
+      change: "En proceso",
+      icon: TrendingUp,
+      color: "text-foreground",
+    },
+  ]
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Bienvenido de nuevo</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">
+          Bienvenido de nuevo
+        </h2>
         <p className="text-muted-foreground">Resumen del análisis IA de tu PGF</p>
       </div>
 
@@ -103,17 +208,21 @@ export function DashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockHistory.slice(0, 3).map((version) => (
+              {history.slice(0, 3).map((version) => (
                 <div
                   key={version.id}
                   className="flex items-start justify-between border-b border-border pb-3 last:border-0 last:pb-0"
                 >
                   <div className="space-y-1 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium leading-none">Versión {version.version}</p>
+                      <p className="text-sm font-medium leading-none">
+                        Versión {version.version}
+                      </p>
                       <AIProvenanceTag source={version.source} />
                     </div>
-                    <p className="text-xs text-muted-foreground">{version.changes}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {version.changes}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {version.author} • {version.date}
                     </p>
@@ -124,15 +233,15 @@ export function DashboardContent() {
                       version.status === "approved"
                         ? "bg-primary text-white"
                         : version.status === "reviewing"
-                          ? "bg-secondary text-foreground"
-                          : "bg-muted text-foreground",
+                        ? "bg-secondary text-foreground"
+                        : "bg-muted text-foreground",
                     )}
                   >
                     {version.status === "approved"
                       ? "Aprobado"
                       : version.status === "reviewing"
-                        ? "En revisión"
-                        : "Borrador"}
+                      ? "En revisión"
+                      : "Borrador"}
                   </span>
                 </div>
               ))}

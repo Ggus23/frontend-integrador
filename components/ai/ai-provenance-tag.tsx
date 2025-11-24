@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { FileText, Sparkles, User } from "lucide-react"
 
-type ProvenanceSource = "pgf" | "ai" | "manual"
+export type ProvenanceSource = "pgf" | "ai" | "manual"
 
 interface AIProvenanceTagProps {
   source: ProvenanceSource
